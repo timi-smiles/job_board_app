@@ -1,0 +1,205 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("PRISMA_DATABASE_URL")
+  directUrl = env("DATABASE_URL")
+}
+
+// User model - Base user entity for both roles
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  password  String
+  role      UserRole   @default(JOB_SEEKER)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  jobSeeker  JobSeeker?
+  recruiter  Recruiter?
+
+  @@index([email])
+}
+
+enum UserRole {
+  JOB_SEEKER
+  RECRUITER
+}
+
+// Job Seeker Profile
+model JobSeeker {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName String?
+  lastName  String?
+  phoneNumber String?
+  summary   String?
+  location  String?
+  profileImage String?
+
+  // File uploads
+  cvUrl     String?
+  cvFileName String?
+
+  // Experience and qualifications
+  yearsOfExperience Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  educations      Education[]
+  skills          Skill[]
+  certifications  Certification[]
+  applications    JobApplication[]
+
+  @@index([userId])
+}
+
+// Job Seeker Education
+model Education {
+  id        String   @id @default(cuid())
+  jobSeekerId String
+  jobSeeker JobSeeker @relation(fields: [jobSeekerId], references: [id], onDelete: Cascade)
+
+  qualification String // e.g., "B.Sc in English", "HND", "MSc"
+  institution   String?
+  completionYear Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([jobSeekerId])
+}
+
+// Job Seeker Skills
+model Skill {
+  id        String   @id @default(cuid())
+  jobSeekerId String
+  jobSeeker JobSeeker @relation(fields: [jobSeekerId], references: [id], onDelete: Cascade)
+
+  name      String // e.g., "Frontend Development", "Accounting"
+  proficiency String? // e.g., "Beginner", "Intermediate", "Advanced"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([jobSeekerId])
+}
+
+// Job Seeker Certifications
+model Certification {
+  id        String   @id @default(cuid())
+  jobSeekerId String
+  jobSeeker JobSeeker @relation(fields: [jobSeekerId], references: [id], onDelete: Cascade)
+
+  name      String
+  issuer    String?
+  issueDate String?
+  expiryDate String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([jobSeekerId])
+}
+
+// Recruiter Profile
+model Recruiter {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyName String
+  companyDescription String?
+  industry    String?
+  companyWebsite String?
+  companyLocation String?
+  companyImage String?
+
+  // File uploads
+  verificationDocUrl String?
+  verificationDocName String?
+  isVerified Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  jobListings JobListing[]
+
+  @@index([userId])
+}
+
+// Job Listings
+model JobListing {
+  id        String   @id @default(cuid())
+  recruiterId String
+  recruiter Recruiter @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+
+  jobTitle  String
+  description String
+  employmentType EmploymentType // full-time, part-time, contract
+  
+  requiredQualifications String? // JSON or text field for qualifications
+  requiredSkills String? // JSON or text field for skills
+  
+  salaryMin Int?
+  salaryMax Int?
+  currency  String? @default("USD")
+  
+  location  String?
+  isActive  Boolean @default(true)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  applications JobApplication[]
+
+  @@index([recruiterId])
+  @@index([isActive])
+  @@index([jobTitle])
+  @@index([description])
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+}
+
+// Job Applications
+model JobApplication {
+  id        String   @id @default(cuid())
+  jobSeekerId String
+  jobSeeker JobSeeker @relation(fields: [jobSeekerId], references: [id], onDelete: Cascade)
+
+  jobListingId String
+  jobListing   JobListing @relation(fields: [jobListingId], references: [id], onDelete: Cascade)
+
+  status    ApplicationStatus @default(APPLIED)
+  appliedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([jobSeekerId, jobListingId])
+  @@index([jobSeekerId])
+  @@index([jobListingId])
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SHORTLISTED
+  REJECTED
+  ACCEPTED
+  WITHDRAWN
+}
