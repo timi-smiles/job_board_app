@@ -3,7 +3,7 @@
 import React from "react"
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { AlertCircle, Eye, EyeOff, Briefcase } from 'lucide-react'
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -27,6 +27,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect')
 
   const {
     register,
@@ -54,8 +56,10 @@ export default function LoginPage() {
         return
       }
 
-      // Redirect based on role
-      if (responseData.user.role === 'JOB_SEEKER') {
+      // Redirect to intended page if provided, otherwise dashboard
+      if (redirect && redirect.startsWith('/')) {
+        router.push(redirect)
+      } else if (responseData.user.role === 'JOB_SEEKER') {
         router.push('/dashboard/seeker')
       } else {
         router.push('/dashboard/recruiter')
@@ -68,12 +72,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card className="w-full max-w-md">
-        <div className="p-8">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">JobBoard</h1>
-            <p className="text-gray-600 text-sm mt-2">Sign in to your account</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-6 sm:py-8 overflow-x-hidden">
+      <Card className="w-full max-w-md mx-auto">
+        <div className="p-6 sm:p-8">
+          <div className="mb-6 sm:mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shrink-0">
+                <Briefcase className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">JobBoard</h1>
+                <p className="text-gray-600 text-sm">Sign in to your account</p>
+              </div>
+            </div>
           </div>
 
           {error && (
@@ -132,7 +143,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </Button>
@@ -141,7 +152,7 @@ export default function LoginPage() {
           <div className="mt-6 pt-6 border-t border-gray-200">
             <p className="text-center text-sm text-gray-600">
               Don't have an account?{' '}
-              <Link href="/auth/register" className="font-medium text-gray-900 hover:text-gray-700">
+              <Link href="/auth/register" className="font-medium text-blue-600 hover:text-blue-700">
                 Sign up
               </Link>
             </p>

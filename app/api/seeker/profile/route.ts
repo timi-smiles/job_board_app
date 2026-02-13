@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    const profile = await prisma.jobSeeker.findUnique({
+    let profile = await prisma.jobSeeker.findUnique({
       where: { userId: decoded.userId },
       include: {
         educations: true,
@@ -24,8 +24,19 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    // If profile doesn't exist, create it (for users who registered before this was set up)
     if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+      console.log('Profile not found, creating new profile for user:', decoded.userId)
+      profile = await prisma.jobSeeker.create({
+        data: {
+          userId: decoded.userId,
+        },
+        include: {
+          educations: true,
+          skills: true,
+          certifications: true,
+        },
+      })
     }
 
     return NextResponse.json({ profile })

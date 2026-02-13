@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, CheckCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle, Briefcase } from 'lucide-react'
 
 interface JobListing {
   id: string
@@ -128,29 +128,41 @@ export default function EditJobPage({ params }: { params: Promise<{ id: string }
 
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="text-gray-600">Loading job...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading job...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Edit Job Listing</h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-3 mb-6 sm:mb-8">
+            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+              <Briefcase className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Edit Job Listing</h1>
+              <p className="text-gray-600 text-sm mt-0.5">Update your job details</p>
+            </div>
+          </div>
 
-        {message && (
-          <Alert variant={message.type === 'error' ? 'destructive' : 'default'} className="mb-6">
-            {message.type === 'error' ? (
-              <AlertCircle className="h-4 w-4" />
-            ) : (
-              <CheckCircle className="h-4 w-4" />
-            )}
-            <AlertDescription>{message.text}</AlertDescription>
-          </Alert>
-        )}
+          {message && (
+            <Alert variant={message.type === 'error' ? 'destructive' : 'default'} className="mb-6 border-2">
+              {message.type === 'error' ? (
+                <AlertCircle className="h-5 w-5" />
+              ) : (
+                <CheckCircle className="h-5 w-5" />
+              )}
+              <AlertDescription className="font-medium">{message.text}</AlertDescription>
+            </Alert>
+          )}
 
-        <Card className="p-6 border border-gray-200">
+          <Card className="p-4 sm:p-6 border-2 border-gray-200 hover:border-blue-200 transition-colors">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Job Title */}
             <div>
@@ -272,7 +284,7 @@ export default function EditJobPage({ params }: { params: Promise<{ id: string }
               <Button
                 type="submit"
                 disabled={saving}
-                className="bg-gray-900 hover:bg-gray-800 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 {saving ? 'Saving...' : 'Save Job Listing'}
               </Button>
@@ -286,6 +298,7 @@ export default function EditJobPage({ params }: { params: Promise<{ id: string }
             </div>
           </form>
         </Card>
+        </div>
       </div>
     </div>
   )

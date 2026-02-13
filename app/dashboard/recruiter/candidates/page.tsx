@@ -70,54 +70,70 @@ export default function CandidatesPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="text-gray-600">Loading candidates...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading candidates...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Search Candidates</h1>
-
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {/* Search */}
-        <div className="mb-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              type="text"
-              placeholder="Search by name, skills, education, location..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center gap-3 mb-6 sm:mb-8">
+            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+              <User className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Search Candidates</h1>
+              <p className="text-gray-600 text-sm mt-0.5">Find talent by name, skills, education, or location</p>
+            </div>
           </div>
-          <p className="text-sm text-gray-600 mt-2">
-            Example: "React", "B.Sc in English", "Senior Developer", "San Francisco"
-          </p>
-        </div>
 
-        {/* Candidates Grid */}
-        {filteredCandidates.length === 0 ? (
-          <Card className="p-12 text-center border border-gray-200">
-            <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">
-              {searchTerm ? 'No candidates match your search.' : 'No candidates available.'}
+          {error && (
+            <Alert variant="destructive" className="mb-6 border-2">
+              <AlertCircle className="h-5 w-5" />
+              <AlertDescription className="font-medium">{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* Search */}
+          <Card className="p-4 sm:p-6 border-2 border-gray-200 mb-6">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Input
+                type="text"
+                placeholder="Search by name, skills, education, location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 border-2 focus:border-blue-500"
+              />
+            </div>
+            <p className="text-sm text-gray-600 mt-2">
+              Example: &quot;React&quot;, &quot;B.Sc in English&quot;, &quot;Senior Developer&quot;, &quot;San Francisco&quot;
             </p>
           </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredCandidates.map((candidate) => (
-              <Card key={candidate.id} className="p-6 border border-gray-200 hover:border-gray-300 transition">
-                <div className="flex items-start justify-between mb-4">
+
+          {/* Candidates Grid */}
+          {filteredCandidates.length === 0 ? (
+            <Card className="p-12 text-center border-2 border-gray-200 bg-white">
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <User className="w-10 h-10 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">No candidates found</h3>
+              <p className="text-gray-600">
+                {searchTerm ? 'No candidates match your search. Try different keywords.' : 'No candidates available yet.'}
+              </p>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredCandidates.map((candidate) => (
+                <Card key={candidate.id} className="p-4 sm:p-6 border-2 border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300">
+                <div className="flex flex-col gap-4">
+                <div className="flex items-start justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
                       {candidate.firstName && candidate.lastName
@@ -187,13 +203,15 @@ export default function CandidatesPage() {
                   </div>
                 )}
 
-                <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-2">
                   View Profile
                 </Button>
+                </div>
               </Card>
             ))}
           </div>
         )}
+        </div>
       </div>
     </div>
   )

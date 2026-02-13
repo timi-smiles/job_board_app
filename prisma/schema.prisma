@@ -22,10 +22,25 @@ model User {
   updatedAt DateTime   @updatedAt
 
   // Relations
-  jobSeeker  JobSeeker?
-  recruiter  Recruiter?
+  jobSeeker         JobSeeker?
+  recruiter         Recruiter?
+  pushSubscriptions PushSubscription[]
 
   @@index([email])
+}
+
+// Push notification subscriptions for browser push
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String
+  p256dh    String   // Public key
+  auth      String   // Auth secret
+  createdAt DateTime @default(now())
+
+  @@unique([userId])
+  @@index([userId])
 }
 
 enum UserRole {

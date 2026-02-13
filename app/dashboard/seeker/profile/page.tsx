@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -10,7 +12,21 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, CheckCircle, Plus, Trash2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+import { 
+  AlertCircle, 
+  CheckCircle, 
+  Plus, 
+  Trash2, 
+  User, 
+  Briefcase, 
+  GraduationCap, 
+  Award,
+  FileText,
+  Save,
+  Sparkles
+} from 'lucide-react'
 
 interface Education {
   id: string
@@ -72,6 +88,8 @@ type EducationFormData = z.infer<typeof educationSchema>
 type SkillFormData = z.infer<typeof skillSchema>
 
 export default function ProfilePage() {
+  const searchParams = useSearchParams()
+  const jobId = searchParams.get('jobId')
   const [profile, setProfile] = useState<JobSeekerProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -81,6 +99,14 @@ export default function ProfilePage() {
   const [educations, setEducations] = useState<Education[]>([])
   const [skills, setSkills] = useState<Skill[]>([])
   const [certifications, setCertifications] = useState<Certification[]>([])
+  
+  // New item forms
+  const [newCertification, setNewCertification] = useState({
+    name: '',
+    issuer: '',
+    issueDate: '',
+    expiryDate: ''
+  })
 
   // Main profile form
   const {
@@ -263,33 +289,89 @@ export default function ProfilePage() {
     }
   }
 
+  const calculateProfileCompletion = () => {
+    let completion = 0
+    if (profile?.firstName) completion += 10
+    if (profile?.lastName) completion += 10
+    if (profile?.phoneNumber) completion += 10
+    if (profile?.location) completion += 10
+    if (profile?.yearsOfExperience) completion += 10
+    if (profile?.summary) completion += 15
+    if (educations.length > 0) completion += 15
+    if (skills.length > 0) completion += 10
+    if (certifications.length > 0) completion += 10
+    return completion
+  }
+
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="text-gray-600">Loading profile...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading your profile...</p>
+        </div>
       </div>
     )
   }
 
+  const completion = calculateProfileCompletion()
+
   return (
-    <div className="p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">My Profile</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="max-w-5xl mx-auto">
+          {jobId && (
+            <Alert className="mb-6 bg-blue-50 border-blue-200">
+              <Briefcase className="h-4 w-4 text-blue-600" />
+              <AlertDescription>
+                Complete your profile to apply for jobs.{' '}
+                <Link href={`/jobs/${jobId}`} className="font-medium text-blue-600 hover:underline">
+                  Back to job
+                </Link>
+              </AlertDescription>
+            </Alert>
+          )}
+          {/* Header with Progress */}
+          <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">My Profile</h1>
+              <p className="text-sm sm:text-base text-gray-600">Manage your professional information</p>
+            </div>
+            <Card className="p-4 bg-blue-50 border-blue-200 w-full sm:w-auto sm:min-w-[200px]">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Profile Strength</p>
+                    <p className="text-2xl font-bold text-gray-900">{completion}%</p>
+                  </div>
+                </div>
+                <Progress value={completion} className="h-2 mt-3" />
+              </Card>
+            </div>
+          </div>
 
-        {message && (
-          <Alert variant={message.type === 'error' ? 'destructive' : 'default'} className="mb-6">
-            {message.type === 'error' ? (
-              <AlertCircle className="h-4 w-4" />
-            ) : (
-              <CheckCircle className="h-4 w-4" />
-            )}
-            <AlertDescription>{message.text}</AlertDescription>
-          </Alert>
-        )}
+          {message && (
+            <Alert variant={message.type === 'error' ? 'destructive' : 'default'} className="mb-6 border-2">
+              {message.type === 'error' ? (
+                <AlertCircle className="h-5 w-5" />
+              ) : (
+                <CheckCircle className="h-5 w-5" />
+              )}
+              <AlertDescription className="font-medium">{message.text}</AlertDescription>
+            </Alert>
+          )}
 
-        {/* Basic Information */}
-        <Card className="p-6 border border-gray-200 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Basic Information</h2>
+          {/* Basic Information */}
+          <Card className="p-6 border-2 border-gray-200 mb-6 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <User className="w-5 h-5 text-blue-600" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Basic Information</h2>
+            </div>
           <form onSubmit={handleSubmitProfile(onSubmitProfile)}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
@@ -381,15 +463,22 @@ export default function ProfilePage() {
               )}
             </div>
 
-            <Button type="submit" disabled={saving} className="bg-gray-900 hover:bg-gray-800 text-white">
-              {saving ? 'Saving...' : 'Save Profile'}
+            <Button type="submit" disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white px-8">
+              <Save className="w-4 h-4 mr-2" />
+              {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </form>
         </Card>
 
         {/* Education */}
-        <Card className="p-6 border border-gray-200 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Education</h2>
+        <Card className="p-6 border-2 border-gray-200 mb-6 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <GraduationCap className="w-5 h-5 text-green-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">Education</h2>
+            <Badge variant="secondary" className="ml-auto">{educations.length} added</Badge>
+          </div>
 
           {educations.length > 0 && (
             <div className="mb-6 space-y-4">
@@ -478,8 +567,14 @@ export default function ProfilePage() {
         </Card>
 
         {/* Skills */}
-        <Card className="p-6 border border-gray-200 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Skills</h2>
+        <Card className="p-6 border-2 border-gray-200 mb-6 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <Briefcase className="w-5 h-5 text-purple-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">Skills</h2>
+            <Badge variant="secondary" className="ml-auto">{skills.length} added</Badge>
+          </div>
 
           {skills.length > 0 && (
             <div className="mb-6 flex flex-wrap gap-2">
@@ -547,8 +642,14 @@ export default function ProfilePage() {
         </Card>
 
         {/* Certifications */}
-        <Card className="p-6 border border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Certifications</h2>
+        <Card className="p-6 border-2 border-gray-200 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+              <Award className="w-5 h-5 text-orange-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">Certifications</h2>
+            <Badge variant="secondary" className="ml-auto">{certifications.length} added</Badge>
+          </div>
 
           {certifications.length > 0 && (
             <div className="mb-6 space-y-4">
@@ -566,7 +667,20 @@ export default function ProfilePage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setCertifications(certifications.filter(c => c.id !== cert.id))}
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(`/api/seeker/certifications/${cert.id}`, {
+                          method: 'DELETE'
+                        })
+                        
+                        if (!response.ok) throw new Error('Failed to delete certification')
+                        
+                        setCertifications(certifications.filter(c => c.id !== cert.id))
+                        setMessage({ type: 'success', text: 'Certification removed' })
+                      } catch (err) {
+                        setMessage({ type: 'error', text: 'Failed to remove certification' })
+                      }
+                    }}
                     className="text-red-600 hover:text-red-700"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -618,7 +732,29 @@ export default function ProfilePage() {
                 </div>
               </div>
               <Button
-                onClick={() => setNewCertification({ name: '', issuer: '', issueDate: '', expiryDate: '' })}
+                onClick={async () => {
+                  if (!newCertification.name.trim()) {
+                    setMessage({ type: 'error', text: 'Certification name is required' })
+                    return
+                  }
+                  
+                  try {
+                    const response = await fetch('/api/seeker/certifications', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(newCertification)
+                    })
+                    
+                    if (!response.ok) throw new Error('Failed to add certification')
+                    
+                    const data = await response.json()
+                    setCertifications([...certifications, data.certification])
+                    setNewCertification({ name: '', issuer: '', issueDate: '', expiryDate: '' })
+                    setMessage({ type: 'success', text: 'Certification added successfully' })
+                  } catch (err) {
+                    setMessage({ type: 'error', text: 'Failed to add certification' })
+                  }
+                }}
                 variant="outline"
                 className="w-full"
               >
@@ -628,6 +764,7 @@ export default function ProfilePage() {
             </div>
           </div>
         </Card>
+      </div>
       </div>
     </div>
   )

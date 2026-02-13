@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, CheckCircle, Upload, FileText, Shield, Clock, CheckCircle2 } from 'lucide-react'
+import { AlertCircle, CheckCircle, Upload, FileText, Shield, Clock, CheckCircle2, Building2 } from 'lucide-react'
 
 interface RecruiterProfile {
   id: string
@@ -146,31 +146,46 @@ export default function CompanyProfilePage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="text-gray-600">Loading profile...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading company profile...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Company Profile</h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-3 mb-6 sm:mb-8">
+            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+              <Building2 className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Company Profile</h1>
+              <p className="text-gray-600 text-sm mt-0.5">Manage your company info and verification</p>
+            </div>
+          </div>
 
-        {message && (
-          <Alert variant={message.type === 'error' ? 'destructive' : 'default'} className="mb-6">
-            {message.type === 'error' ? (
-              <AlertCircle className="h-4 w-4" />
-            ) : (
-              <CheckCircle className="h-4 w-4" />
-            )}
-            <AlertDescription>{message.text}</AlertDescription>
-          </Alert>
-        )}
+          {message && (
+            <Alert variant={message.type === 'error' ? 'destructive' : 'default'} className="mb-6 border-2">
+              {message.type === 'error' ? (
+                <AlertCircle className="h-5 w-5" />
+              ) : (
+                <CheckCircle className="h-5 w-5" />
+              )}
+              <AlertDescription className="font-medium">{message.text}</AlertDescription>
+            </Alert>
+          )}
 
-        {/* Company Information */}
-        <Card className="p-6 border border-gray-200 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Company Information</h2>
+          {/* Company Information */}
+          <Card className="p-4 sm:p-6 border-2 border-gray-200 hover:border-blue-200 transition-colors mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-blue-600" />
+              Company Information
+            </h2>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
@@ -248,14 +263,14 @@ export default function CompanyProfilePage() {
               )}
             </div>
 
-            <Button type="submit" disabled={saving} className="bg-gray-900 hover:bg-gray-800 text-white">
+            <Button type="submit" disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white">
               {saving ? 'Saving...' : 'Save Profile'}
             </Button>
           </form>
         </Card>
 
         {/* Verification */}
-        <Card className="p-8 border border-gray-200 bg-gradient-to-br from-white to-gray-50">
+        <Card className="p-6 sm:p-8 border-2 border-gray-200 hover:border-blue-200 transition-colors bg-white">
           <div className="flex items-center gap-3 mb-6">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
               profile?.isVerified ? 'bg-green-100' : 'bg-yellow-100'
@@ -299,19 +314,6 @@ export default function CompanyProfilePage() {
           </div>
 
           <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex gap-3">
-                <FileText className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-blue-900 mb-1">Required Documents</p>
-                  <p className="text-sm text-blue-700">
-                    Upload your company verification document such as CAC certificate, business license, 
-                    tax registration, or incorporation certificate.
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {profile?.isVerified ? (
               <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
@@ -346,7 +348,20 @@ export default function CompanyProfilePage() {
                 </div>
               </div>
             ) : (
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-gray-400 transition-colors bg-white">
+              <>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <FileText className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-900 mb-1">Required Documents</p>
+                      <p className="text-sm text-blue-700">
+                        Upload your company verification document such as CAC certificate, business license, 
+                        tax registration, or incorporation certificate.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-gray-400 transition-colors bg-white">
                 <input
                   type="file"
                   id="verification"
@@ -375,9 +390,11 @@ export default function CompanyProfilePage() {
                   </div>
                 </Label>
               </div>
+              </>
             )}
           </div>
         </Card>
+        </div>
       </div>
     </div>
   )

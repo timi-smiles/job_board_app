@@ -99,18 +99,19 @@ export default function NewJobPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center shadow-lg">
-              <Briefcase className="w-6 h-6 text-white" />
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-6 sm:mb-8">
+            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+              <Briefcase className="w-6 h-6 text-blue-600" />
             </div>
-            <h1 className="text-4xl font-bold text-gray-900">Create New Job Listing</h1>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Create New Job Listing</h1>
+              <p className="text-gray-600 text-sm mt-0.5">Fill in the details below to post a new job opportunity</p>
+            </div>
           </div>
-          <p className="text-gray-600 ml-15">Fill in the details below to post a new job opportunity</p>
-        </div>
 
         {message && (
           <Alert variant={message.type === 'error' ? 'destructive' : 'default'} className="mb-6 shadow-md">
@@ -123,7 +124,7 @@ export default function NewJobPage() {
           </Alert>
         )}
 
-        <Card className="p-8 border border-gray-200 shadow-xl bg-white rounded-2xl">
+        <Card className="p-4 sm:p-8 border-2 border-gray-200 hover:border-blue-200 transition-colors bg-white rounded-2xl">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             {/* Job Title Section */}
             <div className="space-y-4 pb-6 border-b border-gray-100">
@@ -329,7 +330,7 @@ export default function NewJobPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="flex-1 h-12 bg-gray-900 hover:bg-gray-800 text-white font-semibold text-base shadow-lg hover:shadow-xl transition-all"
+                className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base shadow-lg hover:shadow-xl transition-all"
               >
                 {loading ? (
                   <>
@@ -354,6 +355,7 @@ export default function NewJobPage() {
             </div>
           </form>
         </Card>
+        </div>
       </div>
     </div>
   )

@@ -15,12 +15,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    const profile = await prisma.recruiter.findUnique({
+    let profile = await prisma.recruiter.findUnique({
       where: { userId: decoded.userId },
     })
 
+    // If profile doesn't exist, create it (for users who registered before this was set up)
     if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+      console.log('Profile not found, creating new profile for user:', decoded.userId)
+      profile = await prisma.recruiter.create({
+        data: {
+          userId: decoded.userId,
+          companyName: '',
+        },
+      })
     }
 
     return NextResponse.json({ profile })

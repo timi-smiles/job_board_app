@@ -34,7 +34,24 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      totalCandidatesViewed: 0, // This would be tracked in a separate table
+      newApplications: await prisma.jobApplication.count({
+        where: {
+          jobListing: {
+            recruiterId: recruiter.id,
+          },
+          status: 'APPLIED',
+        },
+      }),
+      totalCandidatesViewed: await prisma.jobApplication.count({
+        where: {
+          jobListing: {
+            recruiterId: recruiter.id,
+          },
+          status: {
+            in: ['SHORTLISTED', 'ACCEPTED', 'REJECTED'],
+          },
+        },
+      }),
     }
 
     return NextResponse.json({ stats })

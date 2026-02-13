@@ -131,6 +131,15 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.PushSubscriptionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  endpoint: 'endpoint',
+  p256dh: 'p256dh',
+  auth: 'auth',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.JobSeekerScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -254,6 +263,7 @@ exports.ApplicationStatus = exports.$Enums.ApplicationStatus = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  PushSubscription: 'PushSubscription',
   JobSeeker: 'JobSeeker',
   Education: 'Education',
   Skill: 'Skill',

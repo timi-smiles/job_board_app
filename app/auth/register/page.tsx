@@ -3,7 +3,7 @@
 import React from "react"
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -37,6 +37,8 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect')
 
   const {
     register,
@@ -71,8 +73,10 @@ export default function RegisterPage() {
         return
       }
 
-      // Redirect to dashboard
-      if (data.role === 'JOB_SEEKER') {
+      // Redirect to intended page if provided (and seeker), otherwise dashboard
+      if (redirect && redirect.startsWith('/') && data.role === 'JOB_SEEKER') {
+        router.push(redirect)
+      } else if (data.role === 'JOB_SEEKER') {
         router.push('/dashboard/seeker')
       } else {
         router.push('/dashboard/recruiter')
@@ -85,12 +89,19 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card className="w-full max-w-md">
-        <div className="p-8">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">JobBoard</h1>
-            <p className="text-gray-600 text-sm mt-2">Create a new account</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-6 sm:py-8 overflow-x-hidden">
+      <Card className="w-full max-w-md mx-auto">
+        <div className="p-6 sm:p-8">
+          <div className="mb-6 sm:mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shrink-0">
+                <Briefcase className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">JobBoard</h1>
+                <p className="text-gray-600 text-sm">Create a new account</p>
+              </div>
+            </div>
           </div>
 
           {error && (
@@ -109,13 +120,13 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setValue('role', 'JOB_SEEKER')}
-                  className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg transition-all hover:border-gray-400 ${
+                  className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg transition-all hover:border-blue-400 ${
                     role === 'JOB_SEEKER' 
-                      ? 'border-gray-900 bg-gray-50 shadow-sm' 
+                      ? 'border-blue-600 bg-blue-50 shadow-sm' 
                       : 'border-gray-200 bg-white'
                   }`}
                 >
-                  <Briefcase className={`h-8 w-8 mb-2 ${role === 'JOB_SEEKER' ? 'text-gray-900' : 'text-gray-400'}`} />
+                  <Briefcase className={`h-8 w-8 mb-2 ${role === 'JOB_SEEKER' ? 'text-blue-600' : 'text-gray-400'}`} />
                   <span className={`text-sm font-medium ${role === 'JOB_SEEKER' ? 'text-gray-900' : 'text-gray-600'}`}>
                     Candidate
                   </span>
@@ -126,13 +137,13 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setValue('role', 'RECRUITER')}
-                  className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg transition-all hover:border-gray-400 ${
+                  className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg transition-all hover:border-blue-400 ${
                     role === 'RECRUITER' 
-                      ? 'border-gray-900 bg-gray-50 shadow-sm' 
+                      ? 'border-blue-600 bg-blue-50 shadow-sm' 
                       : 'border-gray-200 bg-white'
                   }`}
                 >
-                  <Building2 className={`h-8 w-8 mb-2 ${role === 'RECRUITER' ? 'text-gray-900' : 'text-gray-400'}`} />
+                  <Building2 className={`h-8 w-8 mb-2 ${role === 'RECRUITER' ? 'text-blue-600' : 'text-gray-400'}`} />
                   <span className={`text-sm font-medium ${role === 'RECRUITER' ? 'text-gray-900' : 'text-gray-600'}`}>
                     Employer
                   </span>
@@ -220,7 +231,7 @@ export default function RegisterPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             >
               {loading ? 'Creating account...' : 'Create account'}
             </Button>
@@ -229,7 +240,7 @@ export default function RegisterPage() {
           <div className="mt-6 pt-6 border-t border-gray-200">
             <p className="text-center text-sm text-gray-600">
               Already have an account?{' '}
-              <Link href="/auth/login" className="font-medium text-gray-900 hover:text-gray-700">
+              <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-700">
                 Sign in
               </Link>
             </p>

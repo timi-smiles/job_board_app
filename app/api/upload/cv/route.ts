@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
+import { writeFile, mkdir } from 'fs/promises'
+import path from 'path'
 
-// This is a placeholder implementation
+// This saves files locally for development
 // In production, you would upload to a cloud storage service like AWS S3, Google Cloud Storage, or Vercel Blob
 export async function POST(request: NextRequest) {
   try {
@@ -42,11 +44,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // In production, upload to cloud storage and get URL
-    // For now, we'll just store the file name
-    const fileName = `${Date.now()}-${file.name}`
-
-    // Update job seeker profile with CV info
+    // Get job seeker profile
     const jobSeeker = await prisma.jobSeeker.findUnique({
       where: { userId: decoded.userId },
     })
@@ -55,10 +53,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
-    // In production, you would upload to cloud storage and get a URL
-    // For demo purposes, we'll use a placeholder URL
+    // Create unique filename
+    const fileExtension = file.name.split('.').pop()
+    const fileName = `${decoded.userId}-${Date.now()}.${fileExtension}`
+
+    // Save file to public/uploads/cv directory
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+
+    // Create uploads directory if it doesn't exist
+    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'cv')
+    try {
+      await mkdir(uploadsDir, { recursive: true })
+    } catch (error) {
+      // Directory might already exist, that's ok
+    }
+
+    const filePath = path.join(uploadsDir, fileName)
+    await writeFile(filePath, buffer)
+
+    // Store the public URL (accessible via /uploads/cv/filename)
     const cvUrl = `/uploads/cv/${fileName}`
 
+    // Update job seeker profile with CV info
     await prisma.jobSeeker.update({
       where: { id: jobSeeker.id },
       data: {
@@ -77,6 +94,9 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     console.error('Error uploading file:', error)
-    return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Failed to upload file',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }
