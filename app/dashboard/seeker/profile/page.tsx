@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -87,7 +87,7 @@ type ProfileFormData = z.infer<typeof profileSchema>
 type EducationFormData = z.infer<typeof educationSchema>
 type SkillFormData = z.infer<typeof skillSchema>
 
-export default function ProfilePage() {
+function ProfilePageContent() {
   const searchParams = useSearchParams()
   const jobId = searchParams.get('jobId')
   const [profile, setProfile] = useState<JobSeekerProfile | null>(null)
@@ -767,5 +767,17 @@ export default function ProfilePage() {
       </div>
       </div>
     </div>
+  )
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+      </div>
+    }>
+      <ProfilePageContent />
+    </Suspense>
   )
 }

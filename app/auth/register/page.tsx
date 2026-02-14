@@ -1,8 +1,6 @@
 'use client'
 
-import React from "react"
-
-import { useState } from 'react'
+import React, { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -31,7 +29,7 @@ const registerSchema = z.object({
 
 type RegisterFormData = z.infer<typeof registerSchema>
 
-export default function RegisterPage() {
+function RegisterForm() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -248,5 +246,17 @@ export default function RegisterPage() {
         </div>
       </Card>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+      </div>
+    }>
+      <RegisterForm />
+    </Suspense>
   )
 }
