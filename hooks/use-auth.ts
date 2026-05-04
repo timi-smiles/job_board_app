@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { UserRole } from '@prisma/client'
+import { UserRole } from '@/generated/client'
 
 export interface AuthUser {
   id: string

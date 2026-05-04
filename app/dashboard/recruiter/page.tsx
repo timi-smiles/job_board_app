@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { PageLoading } from '@/components/PageLoading'
 
 interface RecruiterProfile {
   companyName: string
@@ -99,14 +100,7 @@ export default function RecruiterDashboard() {
   }, [])
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading your dashboard...</p>
-        </div>
-      </div>
-    )
+    return <PageLoading variant="fullscreen" message="Loading your dashboard…" />
   }
 
   const companyName = company?.companyName || 'Company'
@@ -131,6 +125,23 @@ export default function RecruiterDashboard() {
               <AlertCircle className="h-5 w-5" />
               <AlertDescription className="font-medium">{error}</AlertDescription>
             </Alert>
+          )}
+
+          {/* Verified company */}
+          {company?.isVerified && (
+            <Card className="mb-6 p-4 sm:p-5 bg-emerald-50 border-emerald-200 border-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shrink-0">
+                  <CheckCircle className="w-5 h-5 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-gray-900">Company verification approved</h3>
+                  <p className="text-sm text-emerald-800 mt-0.5">
+                    Your company is verified. Job seekers will see the verified badge on your listings.
+                  </p>
+                </div>
+              </div>
+            </Card>
           )}
 
           {/* Verification banner - only show for companies that haven't submitted docs */}

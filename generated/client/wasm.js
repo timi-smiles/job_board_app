@@ -244,7 +244,8 @@ exports.Prisma.NullsOrder = {
 };
 exports.UserRole = exports.$Enums.UserRole = {
   JOB_SEEKER: 'JOB_SEEKER',
-  RECRUITER: 'RECRUITER'
+  RECRUITER: 'RECRUITER',
+  ADMIN: 'ADMIN'
 };
 
 exports.EmploymentType = exports.$Enums.EmploymentType = {

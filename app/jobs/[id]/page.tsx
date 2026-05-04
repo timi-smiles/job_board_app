@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import HeaderNav from '@/components/HeaderNav'
+import { LoadingSpinner } from '@/components/PageLoading'
 import {
   Dialog,
   DialogContent,
@@ -167,7 +168,7 @@ export default function PublicJobDetailPage({ params }: { params: Promise<{ id: 
       <div className="min-h-screen bg-gray-50">
         <HeaderNav />
         <div className="max-w-5xl mx-auto px-4 py-16 flex justify-center">
-          <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+          <LoadingSpinner size="md" />
         </div>
       </div>
     )

@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Briefcase, Building2, MapPin, DollarSign, ArrowRight } from 'lucide-react'
+import { LoadingSpinner } from '@/components/PageLoading'
 
 interface Job {
   id: string
@@ -42,7 +43,7 @@ export default function FeaturedJobs() {
             <p className="text-gray-600">Loading opportunities...</p>
           </div>
           <div className="flex justify-center py-12">
-            <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+            <LoadingSpinner size="md" />
           </div>
         </div>
       </section>

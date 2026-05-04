@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { PageLoading } from '@/components/PageLoading'
 
 interface JobSeekerProfile {
   firstName?: string
@@ -72,14 +73,7 @@ export default function SeekerDashboard() {
   }, [])
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading your dashboard...</p>
-        </div>
-      </div>
-    )
+    return <PageLoading variant="fullscreen" message="Loading your dashboard…" />
   }
 
   const fullName = profile?.firstName || profile?.lastName

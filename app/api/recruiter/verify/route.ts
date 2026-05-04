@@ -1,9 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
+import { writeFile, mkdir } from 'fs/promises'
+import path from 'path'
 
-// This is a placeholder implementation
-// In production, you would upload to a cloud storage service like AWS S3, Google Cloud Storage, or Vercel Blob
+// Saves under public/uploads/verification for local dev. For production, use S3, GCS, or Vercel Blob.
+
+const MAX_SIZE = 10 * 1024 * 1024 // 10MB
+
+const MIME_TYPES = new Set([
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'image/jpeg',
+  'image/png',
+])
+
+const ALLOWED_EXTENSIONS = new Set(['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'])
+
+function isAcceptedVerificationFile(file: File): boolean {
+  const ext = path.extname(file.name).toLowerCase()
+  if (!ALLOWED_EXTENSIONS.has(ext)) return false
+  if (file.type === '' || file.type === 'application/octet-stream') return true
+  return MIME_TYPES.has(file.type)
+}
+
 export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get('jobboard_token')?.value
@@ -24,24 +45,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
-    // Validate file type and size
-    const validTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'image/jpeg',
-      'image/png',
-    ]
-    const maxSize = 10 * 1024 * 1024 // 10MB
-
-    if (!validTypes.includes(file.type)) {
+    if (!isAcceptedVerificationFile(file)) {
       return NextResponse.json(
         { error: 'Invalid file type. Only PDF, DOC, DOCX, JPG, and PNG files are allowed.' },
         { status: 400 }
       )
     }
 
-    if (file.size > maxSize) {
+    if (file.size > MAX_SIZE) {
       return NextResponse.json(
         { error: 'File is too large. Maximum size is 10MB.' },
         { status: 400 }
@@ -56,8 +67,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
-    // In production, upload to cloud storage and get URL
-    const fileName = `${Date.now()}-${file.name}`
+    const extRaw = path.extname(file.name).slice(1).toLowerCase()
+    const ext =
+      ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'].includes(extRaw) ? extRaw : null
+    if (!ext) {
+      return NextResponse.json({ error: 'Invalid file extension.' }, { status: 400 })
+    }
+
+    const fileName = `${recruiter.id}-${Date.now()}.${ext}`
+    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'verification')
+    try {
+      await mkdir(uploadsDir, { recursive: true })
+    } catch {
+      // directory may exist
+    }
+
+    const bytes = await file.arrayBuffer()
+    await writeFile(path.join(uploadsDir, fileName), Buffer.from(bytes))
+
     const docUrl = `/uploads/verification/${fileName}`
 
     await prisma.recruiter.update({
@@ -81,6 +108,12 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     console.error('Error uploading verification document:', error)
-    return NextResponse.json({ error: 'Failed to upload document' }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: 'Failed to upload document',
+        details: error instanceof Error ? error.message : undefined,
+      },
+      { status: 500 }
+    )
   }
 }

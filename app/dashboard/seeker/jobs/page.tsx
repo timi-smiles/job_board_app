@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { PageLoading } from '@/components/PageLoading'
 
 interface JobListing {
   id: string
@@ -136,14 +137,7 @@ export default function JobsPage() {
 
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading jobs...</p>
-        </div>
-      </div>
-    )
+    return <PageLoading variant="fullscreen" message="Loading jobs…" />
   }
 
   return (

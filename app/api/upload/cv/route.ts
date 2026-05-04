@@ -26,11 +26,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
-    // Validate file type and size
-    const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    const MIME_TYPES = new Set([
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ])
+    const ALLOWED_CV_EXT = new Set(['.pdf', '.doc', '.docx'])
+
+    const ext = path.extname(file.name).toLowerCase()
+    const cvTypeOk =
+      ALLOWED_CV_EXT.has(ext) &&
+      (MIME_TYPES.has(file.type) ||
+        file.type === '' ||
+        file.type === 'application/octet-stream')
+
     const maxSize = 10 * 1024 * 1024 // 10MB
 
-    if (!validTypes.includes(file.type)) {
+    if (!cvTypeOk) {
       return NextResponse.json(
         { error: 'Invalid file type. Only PDF and DOC files are allowed.' },
         { status: 400 }
@@ -53,9 +65,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
-    // Create unique filename
-    const fileExtension = file.name.split('.').pop()
-    const fileName = `${decoded.userId}-${Date.now()}.${fileExtension}`
+    const extKey = path.extname(file.name).slice(1).toLowerCase()
+    const fileName = `${decoded.userId}-${Date.now()}.${extKey}`
 
     // Save file to public/uploads/cv directory
     const bytes = await file.arrayBuffer()

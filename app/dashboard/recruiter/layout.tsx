@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { LogOut, Building2, Briefcase, Home, Users, FileCheck, Menu, X } from 'lucide-react'
+import { PageLoading } from '@/components/PageLoading'
 
 export default function RecruiterLayout({
   children,
@@ -26,6 +27,15 @@ export default function RecruiterLayout({
           router.push('/auth/login')
         } else {
           const data = await response.json()
+          const role = data.user?.role as string | undefined
+          if (role === 'ADMIN') {
+            router.push('/admin/dashboard')
+            return
+          }
+          if (role !== 'RECRUITER') {
+            router.push('/dashboard/seeker')
+            return
+          }
           setUserEmail(data.user?.email || '')
         }
       } catch {
@@ -44,14 +54,7 @@ export default function RecruiterLayout({
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading...</p>
-        </div>
-      </div>
-    )
+    return <PageLoading variant="fullscreen" message="Loading…" />
   }
 
   const navItems = [
@@ -172,7 +175,7 @@ export default function RecruiterLayout({
             <span className="font-semibold text-gray-900 truncate">JobBoard</span>
           </div>
         </header>
-        <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto">
+        <main className="flex flex-1 min-h-0 flex-col overflow-x-hidden overflow-y-auto">
           {children}
         </main>
       </div>

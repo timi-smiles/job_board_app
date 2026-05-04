@@ -65,7 +65,8 @@ export type JobApplication = $Result.DefaultSelection<Prisma.$JobApplicationPayl
 export namespace $Enums {
   export const UserRole: {
   JOB_SEEKER: 'JOB_SEEKER',
-  RECRUITER: 'RECRUITER'
+  RECRUITER: 'RECRUITER',
+  ADMIN: 'ADMIN'
 };
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]

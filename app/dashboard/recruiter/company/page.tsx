@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle, CheckCircle, Upload, FileText, Shield, Clock, CheckCircle2, Building2 } from 'lucide-react'
+import { PageLoading } from '@/components/PageLoading'
 
 interface RecruiterProfile {
   id: string
@@ -126,7 +127,10 @@ export default function CompanyProfilePage() {
         body: formData,
       })
 
-      if (!response.ok) throw new Error('Failed to upload verification document')
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => null as { error?: string } | null)
+        throw new Error(errBody?.error || 'Failed to upload verification document')
+      }
 
       setMessage({ type: 'success', text: 'Verification document uploaded successfully! We will review it shortly.' })
       
@@ -145,14 +149,7 @@ export default function CompanyProfilePage() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading company profile...</p>
-        </div>
-      </div>
-    )
+    return <PageLoading variant="fullscreen" message="Loading company profile…" />
   }
 
   return (

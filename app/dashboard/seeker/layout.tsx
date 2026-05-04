@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { LogOut, User, Briefcase, Home, FileText, Menu, X } from 'lucide-react'
 import JobSeekerOnboarding from '@/components/onboarding/JobSeekerOnboarding'
 import PushNotificationPrompt from '@/components/PushNotificationPrompt'
+import { PageLoading } from '@/components/PageLoading'
 
 export default function SeekerLayout({
   children,
@@ -31,6 +32,15 @@ export default function SeekerLayout({
           router.push('/auth/login')
         } else {
           const data = await response.json()
+          const role = data.user?.role as string | undefined
+          if (role === 'ADMIN') {
+            router.push('/admin/dashboard')
+            return
+          }
+          if (role !== 'JOB_SEEKER') {
+            router.push('/dashboard/recruiter')
+            return
+          }
           setUserEmail(data.user?.email || '')
         }
       } catch {
@@ -49,14 +59,7 @@ export default function SeekerLayout({
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-white">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading...</p>
-        </div>
-      </div>
-    )
+    return <PageLoading variant="fullscreen" message="Loading…" />
   }
 
   const navItems = [
@@ -188,7 +191,7 @@ export default function SeekerLayout({
               <span className="font-semibold text-gray-900 truncate">JobBoard</span>
             </div>
           </header>
-          <main className="flex-1 min-h-0">
+          <main className="flex flex-1 min-h-0 flex-col overflow-x-hidden overflow-y-auto">
             {children}
           </main>
         </div>

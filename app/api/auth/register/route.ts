@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, generateToken } from '@/lib/auth'
-import { UserRole } from '@prisma/client'
+import { UserRole } from '@/generated/client'
 import { z } from 'zod'
 
 const RegisterSchema = z.object({

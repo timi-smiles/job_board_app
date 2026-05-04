@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyPassword, generateToken } from '@/lib/auth'
+import { UserRole } from '@/generated/client'
 import { z } from 'zod'
 
 const LoginSchema = z.object({
@@ -34,6 +35,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
+      )
+    }
+
+    if (user.role === UserRole.ADMIN) {
+      return NextResponse.json(
+        {
+          error:
+            'Administrator accounts sign in separately. Use /admin/login for the admin portal.',
+        },
+        { status: 403 }
       )
     }
 

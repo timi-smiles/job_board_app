@@ -27,6 +27,7 @@ import {
   Save,
   Sparkles
 } from 'lucide-react'
+import { PageLoading } from '@/components/PageLoading'
 
 interface Education {
   id: string
@@ -305,12 +306,11 @@ function ProfilePageContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading your profile...</p>
-        </div>
-      </div>
+      <PageLoading
+        variant="fullscreen"
+        message="Loading your profile…"
+        className="bg-gradient-to-br from-gray-50 via-white to-gray-50"
+      />
     )
   }
 
@@ -772,11 +772,11 @@ function ProfilePageContent() {
 
 export default function ProfilePage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <PageLoading variant="fullscreen" message={null} size="lg" />
+      }
+    >
       <ProfilePageContent />
     </Suspense>
   )

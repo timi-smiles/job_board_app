@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle, Briefcase, Building2, Eye, EyeOff } from 'lucide-react'
+import { PageLoading } from '@/components/PageLoading'
 
 const registerSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -251,11 +252,7 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
-      </div>
-    }>
+    <Suspense fallback={<PageLoading variant="fullscreen" message={null} size="lg" />}>
       <RegisterForm />
     </Suspense>
   )

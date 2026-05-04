@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle, CheckCircle, Briefcase } from 'lucide-react'
+import { PageLoading } from '@/components/PageLoading'
 
 interface JobListing {
   id: string
@@ -127,14 +128,7 @@ export default function EditJobPage({ params }: { params: Promise<{ id: string }
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading job...</p>
-        </div>
-      </div>
-    )
+    return <PageLoading variant="fullscreen" message="Loading job…" />
   }
 
   return (
