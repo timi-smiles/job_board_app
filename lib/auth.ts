@@ -1,8 +1,9 @@
 import bcryptjs from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { UserRole } from '../generated/client'
+import { getJwtSecretString } from '@/lib/auth-constants'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+const JWT_SECRET = getJwtSecretString()
 const SALT_ROUNDS = 10
 
 // Password hashing

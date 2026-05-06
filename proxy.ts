@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyToken } from '@/lib/auth'
+import { verifyTokenMiddleware } from '@/lib/jwt-middleware'
 import { ADMIN_AUTH_COOKIE } from '@/lib/admin-auth'
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // --- Admin area: uses `jobboard_admin_token`, not `jobboard_token`
@@ -18,7 +18,9 @@ export function proxy(request: NextRequest) {
     }
 
     const adminToken = request.cookies.get(ADMIN_AUTH_COOKIE)?.value
-    const adminDecoded = adminToken ? verifyToken(adminToken) : null
+    const adminDecoded = adminToken
+      ? await verifyTokenMiddleware(adminToken)
+      : null
     if (adminDecoded?.role === 'ADMIN') {
       return NextResponse.next()
     }
@@ -36,7 +38,7 @@ export function proxy(request: NextRequest) {
   }
 
   if (token) {
-    const decoded = verifyToken(token)
+    const decoded = await verifyTokenMiddleware(token)
 
     if (!decoded && !isPublicRoute) {
       return NextResponse.redirect(new URL('/auth/login', request.url))
@@ -60,7 +62,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 }
