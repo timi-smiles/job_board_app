@@ -5,7 +5,7 @@ import { readStoredFile } from '@/lib/stored-files'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ applicationId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.cookies.get('jobboard_token')?.value
@@ -25,7 +25,7 @@ export async function GET(
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
-    const { applicationId } = await params
+    const { id: applicationId } = await params
 
     const application = await prisma.jobApplication.findFirst({
       where: {
