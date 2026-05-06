@@ -1,0 +1,303 @@
+###############################################################################
+# VS Code REST Client — API checks for job_board_app
+# Install: REST Client extension (humao.rest-client)
+# Env: Pick "local" → rest-client/http-client.env.json (REST Client: switch env)
+#
+# By default the extension keeps a cookie jar (`rememberCookiesForSubsequentRequests`).
+# Run a login request, then follow with protected calls in the same session; or set
+# {{jobboard_cookie}} / {{admin_cookie}} in http-client.env.json (name=value only).
+#
+# Run `npm run dev` first. Replace UUID placeholders in http-client.env.json.
+###############################################################################
+
+### Public — list active jobs
+GET {{baseUrl}}/api/jobs
+
+### Public — job by id (404 if unknown id)
+GET {{baseUrl}}/api/jobs/{{jobListingId}}
+
+### Public — VAPID public key (push)
+GET {{baseUrl}}/api/notifications/vapid
+
+### Auth — me without using saved cookies (401 if nobody is logged in in this jar)
+# @no-cookie-jar
+GET {{baseUrl}}/api/auth/me
+
+### Auth — validation error (bad email)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "not-an-email",
+  "password": "x"
+}
+
+### Auth — register job seeker (fails if email exists)
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{seekerEmail}}",
+  "password": "{{seekerPassword}}",
+  "confirmPassword": "{{seekerPassword}}",
+  "role": "JOB_SEEKER"
+}
+
+### Auth — register recruiter
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{recruiterEmail}}",
+  "password": "{{recruiterPassword}}",
+  "confirmPassword": "{{recruiterPassword}}",
+  "role": "RECRUITER"
+}
+
+### Auth — login (seeker or recruiter; sets jobboard_token cookie in response)
+# @name userLogin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{seekerEmail}}",
+  "password": "{{seekerPassword}}"
+}
+
+### Auth — current user (set jobboard_cookie in env)
+GET {{baseUrl}}/api/auth/me
+Cookie: {{jobboard_cookie}}
+
+### Auth — logout
+POST {{baseUrl}}/api/auth/logout
+Content-Type: application/json
+Cookie: {{jobboard_cookie}}
+
+{}
+
+### Admin — login (sets jobboard_admin_token)
+# @name adminLogin
+POST {{baseUrl}}/api/admin/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+### Admin — me
+GET {{baseUrl}}/api/admin/auth/me
+Cookie: {{admin_cookie}}
+
+### Admin — list jobs
+GET {{baseUrl}}/api/admin/jobs
+Cookie: {{admin_cookie}}
+
+### Admin — list recruiters
+GET {{baseUrl}}/api/admin/recruiters
+Cookie: {{admin_cookie}}
+
+### Admin — list job seekers
+GET {{baseUrl}}/api/admin/job-seekers
+Cookie: {{admin_cookie}}
+
+### Admin — reject non-admin on admin login
+POST {{baseUrl}}/api/admin/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{seekerEmail}}",
+  "password": "{{seekerPassword}}"
+}
+
+### Seeker — profile
+GET {{baseUrl}}/api/seeker/profile
+Cookie: {{jobboard_cookie}}
+
+### Seeker — applications list
+GET {{baseUrl}}/api/seeker/applications
+Cookie: {{jobboard_cookie}}
+
+### Seeker — application by jobId query
+GET {{baseUrl}}/api/seeker/applications?jobId={{jobListingId}}
+Cookie: {{jobboard_cookie}}
+
+### Seeker — application stats
+GET {{baseUrl}}/api/seeker/applications/stats
+Cookie: {{jobboard_cookie}}
+
+### Seeker — apply to job
+POST {{baseUrl}}/api/seeker/applications
+Content-Type: application/json
+Cookie: {{jobboard_cookie}}
+
+{
+  "jobListingId": "{{jobListingId}}"
+}
+
+### Seeker — add skill
+POST {{baseUrl}}/api/seeker/skills
+Content-Type: application/json
+Cookie: {{jobboard_cookie}}
+
+{
+  "name": "TypeScript",
+  "proficiency": "ADVANCED"
+}
+
+### Seeker — delete skill
+DELETE {{baseUrl}}/api/seeker/skills/{{skillId}}
+Cookie: {{jobboard_cookie}}
+
+### Seeker — add education
+POST {{baseUrl}}/api/seeker/educations
+Content-Type: application/json
+Cookie: {{jobboard_cookie}}
+
+{
+  "qualification": "BSc Computer Science",
+  "institution": "Example University",
+  "completionYear": 2020
+}
+
+### Seeker — delete education
+DELETE {{baseUrl}}/api/seeker/educations/{{educationId}}
+Cookie: {{jobboard_cookie}}
+
+### Seeker — add certification
+POST {{baseUrl}}/api/seeker/certifications
+Content-Type: application/json
+Cookie: {{jobboard_cookie}}
+
+{
+  "name": "AWS Certified Developer",
+  "issuer": "Amazon",
+  "issueDate": "2024-01-15",
+  "expiryDate": null
+}
+
+### Seeker — delete certification
+DELETE {{baseUrl}}/api/seeker/certifications/{{certificationId}}
+Cookie: {{jobboard_cookie}}
+
+### Seeker — upload CV — uncomment boundary and fix file path; needs seeker cookie
+# POST {{baseUrl}}/api/upload/cv
+# Content-Type: multipart/form-data; boundary=----restcl
+#
+# ------restcl
+# Content-Disposition: form-data; name="file"; filename="cv.pdf"
+# Content-Type: application/pdf
+#
+# < C:/path/to/sample.pdf
+# ------restcl--
+
+### Recruiter — profile
+GET {{baseUrl}}/api/recruiter/profile
+Cookie: {{jobboard_cookie}}
+
+### Recruiter — stats
+GET {{baseUrl}}/api/recruiter/stats
+Cookie: {{jobboard_cookie}}
+
+### Recruiter — my jobs
+GET {{baseUrl}}/api/recruiter/jobs
+Cookie: {{jobboard_cookie}}
+
+### Recruiter — create job
+POST {{baseUrl}}/api/recruiter/jobs
+Content-Type: application/json
+Cookie: {{jobboard_cookie}}
+
+{
+  "jobTitle": "Senior Engineer",
+  "description": "Build things.",
+  "employmentType": "FULL_TIME",
+  "location": "Remote",
+  "requiredQualifications": "5+ years",
+  "requiredSkills": "TypeScript, React",
+  "salaryMin": 120000,
+  "salaryMax": 160000
+}
+
+### Recruiter — get job by id
+GET {{baseUrl}}/api/recruiter/jobs/{{jobListingId}}
+Cookie: {{jobboard_cookie}}
+
+### Recruiter — update job (PUT)
+PUT {{baseUrl}}/api/recruiter/jobs/{{jobListingId}}
+Content-Type: application/json
+Cookie: {{jobboard_cookie}}
+
+{
+  "jobTitle": "Senior Engineer",
+  "description": "Build things.",
+  "employmentType": "FULL_TIME",
+  "location": "Remote",
+  "requiredQualifications": "5+ years",
+  "requiredSkills": "TypeScript, React",
+  "salaryMin": 120000,
+  "salaryMax": 165000,
+  "isActive": true
+}
+
+### Recruiter — patch job
+PATCH {{baseUrl}}/api/recruiter/jobs/{{jobListingId}}
+Content-Type: application/json
+Cookie: {{jobboard_cookie}}
+
+{
+  "isActive": false
+}
+
+### Recruiter — delete job
+DELETE {{baseUrl}}/api/recruiter/jobs/{{jobListingId}}
+Cookie: {{jobboard_cookie}}
+
+### Recruiter — applications for my listings
+GET {{baseUrl}}/api/recruiter/applications
+Cookie: {{jobboard_cookie}}
+
+### Recruiter — update application status
+PATCH {{baseUrl}}/api/recruiter/applications/{{applicationId}}
+Content-Type: application/json
+Cookie: {{jobboard_cookie}}
+
+{
+  "status": "SHORTLISTED"
+}
+
+### Recruiter — candidates directory
+GET {{baseUrl}}/api/recruiter/candidates
+Cookie: {{jobboard_cookie}}
+
+### Admin — patch recruiter verification
+PATCH {{baseUrl}}/api/admin/recruiters/{{recruiterId}}/verification
+Content-Type: application/json
+Cookie: {{admin_cookie}}
+
+{
+  "isVerified": true
+}
+
+### Admin — verification document
+GET {{baseUrl}}/api/admin/recruiters/{{recruiterId}}/verification-document
+Cookie: {{admin_cookie}}
+
+### Admin — register admin (if configured)
+POST {{baseUrl}}/api/admin/auth/register
+Content-Type: application/json
+
+{
+  "email": "newadmin@example.com",
+  "password": "{{adminPassword}}"
+}
+
+### Notifications — subscribe (example body)
+POST {{baseUrl}}/api/notifications/subscribe
+Content-Type: application/json
+Cookie: {{jobboard_cookie}}
+
+{
+  "endpoint": "https://example.test/push",
+  "keys": { "p256dh": "x", "auth": "y" }
+}
