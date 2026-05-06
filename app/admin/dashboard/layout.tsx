@@ -70,9 +70,9 @@ export default function AdminDashboardLayout({
 
       <aside
         className={`
-          fixed lg:relative inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col shadow-lg lg:shadow-sm
+          fixed lg:relative inset-y-0 right-0 z-50 w-64 max-w-[85vw] bg-white border-l border-gray-200 lg:border-l-0 lg:border-r flex flex-col shadow-lg lg:shadow-sm
           transform transition-transform duration-200 ease-out
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${mobileOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
         `}
       >
         <div className="p-4 sm:p-6 border-b border-gray-200 flex items-center justify-between lg:block">
@@ -154,21 +154,21 @@ export default function AdminDashboardLayout({
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 overflow-auto">
-        <header className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 shadow-sm">
-          <button
-            type="button"
-            className="p-2 rounded-lg hover:bg-gray-100 text-gray-700"
-            aria-label="Open menu"
-            onClick={() => setMobileOpen(true)}
-          >
-            <Menu className="w-6 h-6" />
-          </button>
+        <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between gap-3 px-4 py-3 bg-white border-b border-gray-200 shadow-sm">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
               <Shield className="w-4 h-4 text-white" />
             </div>
             <span className="font-semibold text-gray-900 truncate">Admin</span>
           </div>
+          <button
+            type="button"
+            className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 shrink-0"
+            aria-label="Open menu"
+            onClick={() => setMobileOpen(true)}
+          >
+            <Menu className="w-6 h-6" />
+          </button>
         </header>
         <main className="flex flex-1 min-h-0 flex-col overflow-x-hidden overflow-y-auto">{children}</main>
       </div>
