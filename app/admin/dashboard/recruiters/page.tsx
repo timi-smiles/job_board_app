@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Building2 } from 'lucide-react'
+import { Building2, Download, FileText } from 'lucide-react'
 import { PageLoading } from '@/components/PageLoading'
 
 type RecruiterRow = {
@@ -199,9 +199,37 @@ export default function AdminRecruitersPage() {
               </div>
               <div className="grid gap-1">
                 <dt className="font-medium text-gray-500">Verification</dt>
-                <dd className="text-gray-900">
-                  {selected.isVerified ? 'Verified' : 'Not verified'}{' '}
-                  {selected.verificationDocName ? ` · Doc: ${selected.verificationDocName}` : ''}
+                <dd className="text-gray-900 space-y-2">
+                  <div>
+                    {selected.isVerified ? 'Verified' : 'Not verified'}
+                    {selected.verificationDocName
+                      ? ` · Doc: ${selected.verificationDocName}`
+                      : selected.verificationDocUrl
+                        ? ' · Document on file'
+                        : ''}
+                  </div>
+                  {selected.verificationDocUrl && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <Button variant="outline" size="sm" className="border-gray-200" asChild>
+                        <a
+                          href={`/api/admin/recruiters/${selected.id}/verification-document?download=1`}
+                        >
+                          <Download className="mr-2 h-4 w-4" />
+                          Download document
+                        </a>
+                      </Button>
+                      <Button variant="outline" size="sm" className="border-gray-200" asChild>
+                        <a
+                          href={`/api/admin/recruiters/${selected.id}/verification-document`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          Open / preview
+                        </a>
+                      </Button>
+                    </div>
+                  )}
                 </dd>
               </div>
               <div className="grid gap-1">
