@@ -25,7 +25,9 @@ import {
   Award,
   FileText,
   Save,
-  Sparkles
+  Sparkles,
+  Download,
+  Upload,
 } from 'lucide-react'
 import { PageLoading } from '@/components/PageLoading'
 
@@ -59,6 +61,7 @@ interface JobSeekerProfile {
   location?: string
   yearsOfExperience?: number
   cvUrl?: string
+  cvFileName?: string
   educations: Education[]
   skills: Skill[]
   certifications: Certification[]
@@ -95,6 +98,7 @@ function ProfilePageContent() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [cvUploading, setCvUploading] = useState(false)
 
   // Sections state
   const [educations, setEducations] = useState<Education[]>([])
@@ -200,6 +204,80 @@ function ProfilePageContent() {
       })
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleDownloadCv = async () => {
+    setMessage(null)
+    try {
+      const response = await fetch('/api/seeker/cv?download=1')
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        throw new Error(
+          typeof err.error === 'string' ? err.error : 'Could not download résumé'
+        )
+      }
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = profile?.cvFileName?.trim() || 'resume.pdf'
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (err) {
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Download failed',
+      })
+    }
+  }
+
+  const handleCvReupload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+
+    if (file.size > 10 * 1024 * 1024) {
+      setMessage({ type: 'error', text: 'File must be 10MB or smaller' })
+      return
+    }
+
+    setCvUploading(true)
+    setMessage(null)
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const response = await fetch('/api/upload/cv', {
+        method: 'POST',
+        body: formData,
+      })
+      const body = await response.json().catch(() => null)
+      if (!response.ok) {
+        throw new Error(body?.error || 'Upload failed')
+      }
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              cvUrl: body.url ?? prev.cvUrl,
+              cvFileName: body.fileName ?? file.name,
+            }
+          : prev
+      )
+      setMessage({
+        type: 'success',
+        text: 'Résumé updated. Recruiters will see your new file on applications.',
+      })
+    } catch (err) {
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Upload failed',
+      })
+    } finally {
+      setCvUploading(false)
     }
   }
 
@@ -468,6 +546,90 @@ function ProfilePageContent() {
               {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </form>
+        </Card>
+
+        {/* Résumé / CV */}
+        <Card className="p-6 border-2 border-gray-200 mb-6 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+              <FileText className="w-5 h-5 text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Résumé / CV</h2>
+              <p className="text-sm text-gray-600">
+                Download your current file or upload a new one (PDF, DOC, DOCX — max 10MB)
+              </p>
+            </div>
+          </div>
+
+          {profile?.cvUrl ? (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                <p className="text-sm text-gray-800">
+                  <span className="font-medium">Current file:</span>{' '}
+                  <span className="text-gray-700">
+                    {profile.cvFileName?.trim() || 'Uploaded résumé'}
+                  </span>
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void handleDownloadCv()}
+                    className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="sm"
+                    disabled={cvUploading}
+                    className="bg-indigo-600 hover:bg-indigo-700"
+                    asChild
+                  >
+                    <label className="cursor-pointer">
+                      <Upload className="w-4 h-4 mr-2 inline" />
+                      {cvUploading ? 'Uploading…' : 'Replace file'}
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        className="hidden"
+                        disabled={cvUploading}
+                        onChange={(ev) => void handleCvReupload(ev)}
+                      />
+                    </label>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center bg-gray-50/50">
+              <p className="text-sm text-gray-600 mb-4">
+                No résumé on file yet. Upload one so you can apply to jobs and share it with employers.
+              </p>
+              <Button
+                type="button"
+                disabled={cvUploading}
+                className="bg-indigo-600 hover:bg-indigo-700"
+                asChild
+              >
+                <label className="cursor-pointer">
+                  <Upload className="w-4 h-4 mr-2 inline" />
+                  {cvUploading ? 'Uploading…' : 'Upload résumé'}
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    className="hidden"
+                    disabled={cvUploading}
+                    onChange={(ev) => void handleCvReupload(ev)}
+                  />
+                </label>
+              </Button>
+            </div>
+          )}
         </Card>
 
         {/* Education */}
