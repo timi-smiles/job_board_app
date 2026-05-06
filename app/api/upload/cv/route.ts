@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
-import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
-
-// This saves files locally for development
-// In production, you would upload to a cloud storage service like AWS S3, Google Cloud Storage, or Vercel Blob
+import { deleteBlobIfExists, storePrivateUpload } from '@/lib/stored-files'
 export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get('jobboard_token')?.value
@@ -68,25 +65,22 @@ export async function POST(request: NextRequest) {
     const extKey = path.extname(file.name).slice(1).toLowerCase()
     const fileName = `${decoded.userId}-${Date.now()}.${extKey}`
 
-    // Save file to public/uploads/cv directory
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
+    const contentHint =
+      file.type && file.type !== 'application/octet-stream'
+        ? file.type
+        : undefined
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'cv')
-    try {
-      await mkdir(uploadsDir, { recursive: true })
-    } catch (error) {
-      // Directory might already exist, that's ok
-    }
+    const previousCvUrl = jobSeeker.cvUrl
+    const { storedUrl: cvUrl } = await storePrivateUpload(
+      `cv/${fileName}`,
+      buffer,
+      contentHint
+    )
 
-    const filePath = path.join(uploadsDir, fileName)
-    await writeFile(filePath, buffer)
+    await deleteBlobIfExists(previousCvUrl)
 
-    // Store the public URL (accessible via /uploads/cv/filename)
-    const cvUrl = `/uploads/cv/${fileName}`
-
-    // Update job seeker profile with CV info
     await prisma.jobSeeker.update({
       where: { id: jobSeeker.id },
       data: {

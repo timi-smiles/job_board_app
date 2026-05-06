@@ -191,7 +191,7 @@ export default function AdminCandidatesPage() {
                       <span className="break-all">
                         {selected.cvFileName || 'Uploaded file'}{' · '}
                         <Link
-                          href={selected.cvUrl}
+                          href={`/api/admin/job-seekers/${selected.id}/cv`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline"

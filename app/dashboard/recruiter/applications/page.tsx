@@ -148,9 +148,15 @@ export default function ApplicationsPage() {
     }
   }
 
-  const handleDownloadResume = async (cvUrl: string, fileName: string) => {
+  const handleDownloadResume = async (
+    applicationId: string,
+    fileName: string
+  ) => {
     try {
-      const response = await fetch(cvUrl)
+      const response = await fetch(
+        `/api/recruiter/applications/${applicationId}/cv?download=1`
+      )
+      if (!response.ok) throw new Error('download failed')
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -328,7 +334,12 @@ export default function ApplicationsPage() {
                     </Button>
                     {application.jobSeeker.cvUrl && (
                       <Button
-                        onClick={() => handleDownloadResume(application.jobSeeker.cvUrl!, application.jobSeeker.cvFileName || 'resume.pdf')}
+                        onClick={() =>
+                        handleDownloadResume(
+                          application.id,
+                          application.jobSeeker.cvFileName || 'resume.pdf'
+                        )
+                      }
                         variant="outline"
                         size="sm"
                         className="flex-1 sm:flex-initial whitespace-nowrap border-2"
@@ -458,10 +469,12 @@ export default function ApplicationsPage() {
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-2">Resume</h4>
                       <Button
-                        onClick={() => handleDownloadResume(
-                          selectedCandidate.jobSeeker.cvUrl!,
-                          selectedCandidate.jobSeeker.cvFileName || 'resume.pdf'
-                        )}
+                        onClick={() =>
+                          handleDownloadResume(
+                            selectedCandidate.id,
+                            selectedCandidate.jobSeeker.cvFileName || 'resume.pdf'
+                          )
+                        }
                         variant="outline"
                         size="sm"
                       >

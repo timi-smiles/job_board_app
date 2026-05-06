@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFile } from 'fs/promises'
 import path from 'path'
 import { prisma } from '@/lib/prisma'
 import { getAdminFromRequest } from '@/lib/admin-auth'
-
-const UPLOAD_PREFIX = '/uploads/verification/'
+import { readStoredFile } from '@/lib/stored-files'
 
 function mimeForFileName(fileName: string): string {
   const ext = path.extname(fileName).toLowerCase()
@@ -18,16 +16,6 @@ function mimeForFileName(fileName: string): string {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   }
   return map[ext] ?? 'application/octet-stream'
-}
-
-/** Safe single-segment file name under verification uploads */
-function parseVerificationFileName(verificationDocUrl: string): string | null {
-  if (!verificationDocUrl.startsWith(UPLOAD_PREFIX)) return null
-  const rest = verificationDocUrl.slice(UPLOAD_PREFIX.length)
-  if (!rest || rest.includes('/') || rest.includes('\\') || rest.includes('..')) {
-    return null
-  }
-  return rest
 }
 
 export async function GET(
@@ -49,38 +37,36 @@ export async function GET(
     return NextResponse.json({ error: 'Document not found' }, { status: 404 })
   }
 
-  const baseName = parseVerificationFileName(recruiter.verificationDocUrl)
-  if (!baseName) {
-    return NextResponse.json({ error: 'Invalid document path' }, { status: 400 })
-  }
-
-  const absolutePath = path.join(
-    process.cwd(),
-    'public',
-    'uploads',
-    'verification',
-    baseName
-  )
-
-  let buffer: Buffer
-  try {
-    buffer = await readFile(absolutePath)
-  } catch {
+  const stored = await readStoredFile(recruiter.verificationDocUrl)
+  if (!stored) {
     return NextResponse.json(
       { error: 'File missing on server. Re-upload may be required.' },
       { status: 404 }
     )
   }
 
-  const download = request.nextUrl.searchParams.get('download') === '1'
-  const rawName = recruiter.verificationDocName?.trim() || baseName
+  const url = recruiter.verificationDocUrl
+  const pathFromUrl = url.startsWith('http')
+    ? (() => {
+        try {
+          return path.basename(new URL(url).pathname)
+        } catch {
+          return 'document'
+        }
+      })()
+    : path.basename(url)
+  const rawName = recruiter.verificationDocName?.trim() || pathFromUrl || 'document'
   const safeName =
-    rawName.replace(/[^\w.\- ()\[\]]+/g, '_').slice(0, 200) || baseName
+    rawName.replace(/[^\w.\- ()\[\]]+/g, '_').slice(0, 200) || 'document'
 
-  const contentType = mimeForFileName(baseName)
+  const download = request.nextUrl.searchParams.get('download') === '1'
   const disposition = download ? 'attachment' : 'inline'
+  const contentType =
+    stored.contentType !== 'application/octet-stream'
+      ? stored.contentType
+      : mimeForFileName(safeName)
 
-  return new NextResponse(buffer, {
+  return new NextResponse(stored.buffer, {
     status: 200,
     headers: {
       'Content-Type': contentType,

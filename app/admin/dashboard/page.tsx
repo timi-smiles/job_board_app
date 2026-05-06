@@ -27,7 +27,14 @@ interface RecRow {
 
 function canPreviewInline(url: string | null): boolean {
   if (!url) return false
-  return /\.pdf$/i.test(url) || /\.(png|jpg|jpeg)$/i.test(url)
+  try {
+    const pathOnly = url.startsWith('http') ? new URL(url).pathname : url
+    return (
+      /\.pdf$/i.test(pathOnly) || /\.(png|jpg|jpeg)$/i.test(pathOnly)
+    )
+  } catch {
+    return /\.pdf$/i.test(url) || /\.(png|jpg|jpeg)$/i.test(url)
+  }
 }
 
 export default function AdminDashboardPage() {

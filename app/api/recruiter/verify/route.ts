@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
-import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
-
-// Saves under public/uploads/verification for local dev. For production, use S3, GCS, or Vercel Blob.
+import { deleteBlobIfExists, storePrivateUpload } from '@/lib/stored-files'
 
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 
@@ -75,17 +73,23 @@ export async function POST(request: NextRequest) {
     }
 
     const fileName = `${recruiter.id}-${Date.now()}.${ext}`
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'verification')
-    try {
-      await mkdir(uploadsDir, { recursive: true })
-    } catch {
-      // directory may exist
-    }
+    const blobPathname = `verification/${fileName}`
 
     const bytes = await file.arrayBuffer()
-    await writeFile(path.join(uploadsDir, fileName), Buffer.from(bytes))
+    const buffer = Buffer.from(bytes)
+    const contentHint =
+      file.type && file.type !== 'application/octet-stream'
+        ? file.type
+        : undefined
 
-    const docUrl = `/uploads/verification/${fileName}`
+    const previousDocUrl = recruiter.verificationDocUrl
+    const { storedUrl: docUrl } = await storePrivateUpload(
+      blobPathname,
+      buffer,
+      contentHint
+    )
+
+    await deleteBlobIfExists(previousDocUrl)
 
     await prisma.recruiter.update({
       where: { id: recruiter.id },
