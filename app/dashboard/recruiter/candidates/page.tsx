@@ -3,20 +3,49 @@
 import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, Search, User, Briefcase } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { AlertCircle, Search, User, Briefcase, Download, Eye } from 'lucide-react'
 import { PageLoading } from '@/components/PageLoading'
 
 interface Candidate {
   id: string
-  firstName?: string
-  lastName?: string
-  summary?: string
-  yearsOfExperience?: number
-  location?: string
+  firstName?: string | null
+  lastName?: string | null
+  summary?: string | null
+  yearsOfExperience?: number | null
+  location?: string | null
   skills: Array<{ id: string; name: string }>
   educations: Array<{ id: string; qualification: string }>
+}
+
+interface CandidateProfile extends Omit<Candidate, 'skills' | 'educations'> {
+  email: string
+  phoneNumber?: string | null
+  cvUrl?: string | null
+  cvFileName?: string | null
+  skills: Array<{ id: string; name: string; proficiency?: string | null }>
+  educations: Array<{
+    id: string
+    qualification: string
+    institution?: string | null
+    completionYear?: number | null
+  }>
+  certifications: Array<{
+    id: string
+    name: string
+    issuer?: string | null
+    issueDate?: string | null
+    expiryDate?: string | null
+  }>
 }
 
 export default function CandidatesPage() {
@@ -25,6 +54,10 @@ export default function CandidatesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [profileCandidate, setProfileCandidate] = useState<CandidateProfile | null>(null)
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false)
+  const [profileLoading, setProfileLoading] = useState(false)
+  const [profileError, setProfileError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchCandidates = async () => {
@@ -43,6 +76,53 @@ export default function CandidatesPage() {
 
     fetchCandidates()
   }, [])
+
+  const openCandidateProfile = async (candidateId: string) => {
+    setProfileDialogOpen(true)
+    setProfileCandidate(null)
+    setProfileError(null)
+    setProfileLoading(true)
+    try {
+      const response = await fetch(`/api/recruiter/candidates/${candidateId}`)
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
+        throw new Error(
+          typeof body.error === 'string' ? body.error : 'Failed to load profile'
+        )
+      }
+      const data = await response.json()
+      setProfileCandidate(data.candidate)
+    } catch (err) {
+      setProfileError(
+        err instanceof Error ? err.message : 'Failed to load profile'
+      )
+    } finally {
+      setProfileLoading(false)
+    }
+  }
+
+  const handleDownloadResume = async (
+    candidateId: string,
+    fileName: string
+  ) => {
+    try {
+      const response = await fetch(
+        `/api/recruiter/candidates/${candidateId}/cv?download=1`
+      )
+      if (!response.ok) throw new Error('download failed')
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName || 'resume.pdf'
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch {
+      setError('Failed to download resume')
+    }
+  }
 
   useEffect(() => {
     if (searchTerm.trim() === '') {
@@ -197,7 +277,12 @@ export default function CandidatesPage() {
                   </div>
                 )}
 
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-2">
+                <Button
+                  type="button"
+                  onClick={() => openCandidateProfile(candidate.id)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-2"
+                >
+                  <Eye className="w-4 h-4 mr-2" />
                   View Profile
                 </Button>
                 </div>
@@ -205,6 +290,178 @@ export default function CandidatesPage() {
             ))}
           </div>
         )}
+
+        <Dialog
+          open={profileDialogOpen}
+          onOpenChange={(open) => {
+            setProfileDialogOpen(open)
+            if (!open) {
+              setProfileCandidate(null)
+              setProfileError(null)
+            }
+          }}
+        >
+          <DialogContent className="w-[calc(100vw-2rem)] max-w-4xl max-h-[90vh] overflow-y-auto sm:p-6">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">
+                {profileLoading
+                  ? 'Loading candidate profile'
+                  : profileCandidate &&
+                      profileCandidate.firstName &&
+                      profileCandidate.lastName
+                    ? `${profileCandidate.firstName} ${profileCandidate.lastName}`
+                    : 'Candidate profile'}
+              </DialogTitle>
+              {profileCandidate && !profileLoading && (
+                <DialogDescription>
+                  Full profile details for this candidate
+                </DialogDescription>
+              )}
+            </DialogHeader>
+
+            {profileLoading && (
+              <div className="py-8 text-center text-gray-600">Loading profile…</div>
+            )}
+            {profileError && !profileLoading && (
+              <div className="py-4 text-center text-red-600 font-medium">
+                {profileError}
+              </div>
+            )}
+            {profileCandidate && !profileLoading && (
+                <div className="space-y-6 py-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Contact information
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <p className="text-gray-700">
+                        <span className="font-medium">Email:</span>{' '}
+                        {profileCandidate.email}
+                      </p>
+                      {profileCandidate.phoneNumber && (
+                        <p className="text-gray-700">
+                          <span className="font-medium">Phone:</span>{' '}
+                          {profileCandidate.phoneNumber}
+                        </p>
+                      )}
+                      {profileCandidate.location && (
+                        <p className="text-gray-700">
+                          <span className="font-medium">Location:</span>{' '}
+                          {profileCandidate.location}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {profileCandidate.summary && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">
+                        Professional summary
+                      </h4>
+                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                        {profileCandidate.summary}
+                      </p>
+                    </div>
+                  )}
+
+                  {profileCandidate.yearsOfExperience != null && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">
+                        Experience
+                      </h4>
+                      <p className="text-sm text-gray-700">
+                        {profileCandidate.yearsOfExperience} years of professional
+                        experience
+                      </p>
+                    </div>
+                  )}
+
+                  {profileCandidate.skills.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Skills</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {profileCandidate.skills.map((skill) => (
+                          <Badge
+                            key={skill.id}
+                            variant="outline"
+                            className="text-sm px-3 py-1"
+                          >
+                            {skill.name}
+                            {skill.proficiency && ` — ${skill.proficiency}`}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {profileCandidate.educations.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">
+                        Education
+                      </h4>
+                      <div className="space-y-2">
+                        {profileCandidate.educations.map((edu) => (
+                          <div key={edu.id} className="text-sm">
+                            <p className="font-medium text-gray-900">
+                              {edu.qualification}
+                            </p>
+                            {edu.institution && (
+                              <p className="text-gray-600">{edu.institution}</p>
+                            )}
+                            {edu.completionYear != null && (
+                              <p className="text-gray-500">
+                                {edu.completionYear}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {profileCandidate.certifications.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">
+                        Certifications
+                      </h4>
+                      <div className="space-y-2">
+                        {profileCandidate.certifications.map((cert) => (
+                          <div key={cert.id} className="text-sm">
+                            <p className="font-medium text-gray-900">
+                              {cert.name}
+                            </p>
+                            {cert.issuer && (
+                              <p className="text-gray-600">{cert.issuer}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {profileCandidate.cvUrl && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Resume</h4>
+                      <Button
+                        type="button"
+                        onClick={() =>
+                          handleDownloadResume(
+                            profileCandidate.id,
+                            profileCandidate.cvFileName || 'resume.pdf'
+                          )
+                        }
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download resume
+                      </Button>
+                    </div>
+                  )}
+                </div>
+            )}
+          </DialogContent>
+        </Dialog>
         </div>
       </div>
     </div>
